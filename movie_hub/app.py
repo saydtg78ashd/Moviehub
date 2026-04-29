@@ -230,17 +230,13 @@ def main() -> None:
                 key="taste_mood",
             )
 
-        result_count = st.slider("Number of results", 3, 12, 8, 1, key="taste_count")
-        min_votes_taste = st.slider("Minimum votes", 0, 329, 50)
-        min_rating_taste = st.slider("Minimum rating", 0.0, 5.0, 3.5, 0.1)
-
         base_votes, base_rating = mood_thresholds(mood)
         recs2 = recommend_by_preferences(
             merged,
             genre=preference_genre,
-            min_votes=max(min_votes_taste, base_votes),
-            min_rating=max(min_rating_taste, base_rating),
-            n=result_count,
+            min_votes=base_votes,
+            min_rating=base_rating,
+            n=8,
         )
 
         if recs2.empty:

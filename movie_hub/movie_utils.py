@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import MinMaxScaler
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data" / "ml-latest-small"
@@ -64,16 +66,18 @@ def _find_title_index(df: pd.DataFrame, title: str) -> int:
     return candidates[0]
 
 def build_genre_matrix(df: pd.DataFrame) -> pd.DataFrame:
-    encoded = df["genres"].fillna("Unknown").str.replace("|", " ", regex=False)
-    popularity = pd.cut(
-        df["rating_count"].clip(lower=0),
-        bins=[-1, 10, 50, 200, 10_000],
-        labels=["very_few", "small", "medium", "popular"],
-    ).astype(str)
-    profile = encoded + " " + popularity
-    vectorizer = CountVectorizer()
-    matrix = vectorizer.fit_transform(profile)
-    return pd.DataFrame(matrix.toarray(), index=df.index, columns=vectorizer.get_feature_names_out())
+    # ===== 1. TEXT (genre) =====
+    text = df["genres"].fillna("Unknown").str.replace("|", " ", regex=False)
+    tfidf = TfidfVectorizer()
+    text_matrix = tfidf.fit_transform(text).toarray()
+    # ===== 2. NUMERIC (year + rating) =====
+    numeric = df[["year", "rating_mean", "rating_count"]].fillna(0)
+    scaler = MinMaxScaler()
+    numeric_scaled = scaler.fit_transform(numeric)
+    # ===== 3. COMBINE =====
+    import numpy as np
+    final_matrix = np.hstack([text_matrix, numeric_scaled])
+    return pd.DataFrame(final_matrix, index=df.index)
 
 def recommend_by_title(df: pd.DataFrame, similarity: np.ndarray, title: str, n: int = 10) -> pd.DataFrame:
     idx = _find_title_index(df, title)
@@ -81,7 +85,7 @@ def recommend_by_title(df: pd.DataFrame, similarity: np.ndarray, title: str, n: 
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1 : n + 1]
     movie_indices = [i for i, _ in sim_scores]
     recs = df.iloc[movie_indices][["movieId", "title", "genres", "rating_count", "rating_mean", "year"]].copy()
-    recs["similarity"] = [round(score, 3) for _, score in sim_scores]
+    recs["similarity"] = [round(float(score), 3) for _, score in sim_scores]
     return recs.reset_index(drop=True)
 
 
