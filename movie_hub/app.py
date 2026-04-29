@@ -216,7 +216,7 @@ def main() -> None:
         st.dataframe(recs, use_container_width=True, hide_index=True)
 
     with tab3:
-        st.subheader("Taste Lab")
+        st.subheader("Preference")
         st.write("A small preference-based area for testing different recommendation styles.")
 
         t1, t2 = st.columns([1, 1])

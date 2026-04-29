@@ -1,4 +1,4 @@
-# CineLens 🎬
+# Movie hub 
 
 A compact Python + Streamlit project for movie analytics and recommendations.
 

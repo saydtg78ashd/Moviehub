@@ -53,6 +53,15 @@ def load_movie_data() -> MovieData:
 
     return MovieData(movies, ratings, movie_stats, merged, genre_matrix, similarity, index_to_title)
 
+def _find_title_index(df: pd.DataFrame, title: str) -> int:
+    matches = df.index[df["title"] == title].tolist()
+    if matches:
+        return matches[0]
+    lowered = title.lower()
+    candidates = df.index[df["title"].str.lower().str.contains(lowered, na=False)].tolist()
+    if not candidates:
+        raise ValueError(f"Could not find movie title: {title}")
+    return candidates[0]
 
 def build_genre_matrix(df: pd.DataFrame) -> pd.DataFrame:
     encoded = df["genres"].fillna("Unknown").str.replace("|", " ", regex=False)
@@ -65,18 +74,6 @@ def build_genre_matrix(df: pd.DataFrame) -> pd.DataFrame:
     vectorizer = CountVectorizer()
     matrix = vectorizer.fit_transform(profile)
     return pd.DataFrame(matrix.toarray(), index=df.index, columns=vectorizer.get_feature_names_out())
-
-
-def _find_title_index(df: pd.DataFrame, title: str) -> int:
-    matches = df.index[df["title"] == title].tolist()
-    if matches:
-        return matches[0]
-    lowered = title.lower()
-    candidates = df.index[df["title"].str.lower().str.contains(lowered, na=False)].tolist()
-    if not candidates:
-        raise ValueError(f"Could not find movie title: {title}")
-    return candidates[0]
-
 
 def recommend_by_title(df: pd.DataFrame, similarity: np.ndarray, title: str, n: int = 10) -> pd.DataFrame:
     idx = _find_title_index(df, title)
