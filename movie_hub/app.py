@@ -100,18 +100,23 @@ def mood_thresholds(mood: str) -> tuple[int, float]:
 
 
 def show_movie_summary_card(movie_row: pd.Series) -> None:
-    st.markdown(
-        f"""
-        <div class="soft-card">
-            <div style="font-size:1.15rem; font-weight:700; margin-bottom:0.35rem;">{movie_row['title']}</div>
-            <div><strong>Genres:</strong> {movie_row['genres']}</div>
-            <div><strong>Average rating:</strong> {movie_row['rating_mean']:.2f}</div>
-            <div><strong>Votes:</strong> {fmt_int(movie_row['rating_count'])}</div>
-            <div><strong>Year:</strong> {"N/A" if pd.isna(movie_row['year']) else int(movie_row['year'])}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    left, mid, right = st.columns([0.01, 2.0, 0.01])
+   
+    with mid:
+        st.markdown(
+            f"""
+            <div class="soft-card" style="text-align: center;">
+                <div style="font-size:1.25rem; font-weight:700; margin-bottom:0.35rem;">
+                    {movie_row['title']}
+                </div>
+                <div style="margin-bottom: 0.2rem;"><strong>Genres:</strong> {movie_row['genres']}</div>
+                <div style="margin-bottom: 0.2rem;"><strong>Average rating:</strong> {movie_row['rating_mean']:.2f} </div>
+                <div style="margin-bottom: 0.2rem;"><strong>Votes:</strong> {fmt_int(movie_row['rating_count'])}</div>
+                <div><strong>Year:</strong> {"N/A" if pd.isna(movie_row['year']) else int(movie_row['year'])}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def main() -> None:
@@ -155,7 +160,7 @@ def main() -> None:
             )
         with dash_b:
             min_votes_dash = st.slider(
-                "Minimum votes",
+                "Minimum votes:",
                 1,
                 330,
                 50,
@@ -202,11 +207,11 @@ def main() -> None:
         st.subheader("Recommender")
         st.write("Pick one movie and get similar titles based on genre and popularity profile.")
 
-        r1, r2 = st.columns([1.25, 0.75])
+        r1, r2 = st.columns([1.1, 0.9])
         with r1:
             picked_title = st.selectbox("Seed movie", top_titles, key="rec_title")
         with r2:
-            rec_count = st.slider("How many recommendations?", 3, 15, 8, 1, key="rec_count")
+            rec_count = st.slider("Recommendations:", 3, 15, 8, 1, key="rec_count")
 
         selected_row = merged.loc[merged["title"] == picked_title].iloc[0]
         show_movie_summary_card(selected_row)
@@ -219,12 +224,12 @@ def main() -> None:
         st.subheader("Preference")
         st.write("A small preference-based area for testing different recommendation styles.")
 
-        t1, t2 = st.columns([1, 1])
+        t1, t2 = st.columns([1.1, 0.9])
         with t1:
             preference_genre = st.selectbox("Preferred genre", genre_options, key="taste_genre")
         with t2:
             mood = st.radio(
-                "Recommendation mood",
+                "Recommendation mood:",
                 ["Balanced", "Crowd favorites", "Hidden gems"],
                 horizontal=True,
                 key="taste_mood",
