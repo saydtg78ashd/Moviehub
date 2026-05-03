@@ -173,6 +173,9 @@ def main() -> None:
         else:
             dashboard_view = merged.copy()
 
+        filtered_ratings = ratings[ratings["movieId"].isin(dashboard_view["movieId"])]
+        summary = user_activity_summary(filtered_ratings)
+        
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Movies", fmt_int(dashboard_view["movieId"].nunique()))
         c2.metric("Ratings", fmt_int(summary["ratings"]))
