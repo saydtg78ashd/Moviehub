@@ -239,8 +239,13 @@ def main() -> None:
             )
 
         base_votes, base_rating = mood_thresholds(mood)
+
+        temp_df = merged.copy()
+        if mood == "Hidden gems":
+            temp_df = temp_df[temp_df["rating_count"] <= 50]
+
         recs2 = recommend_by_preferences(
-            merged,
+            temp_df,
             genre=preference_genre,
             min_votes=base_votes,
             min_rating=base_rating,
